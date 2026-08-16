@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Arquivos locais / backup
+"Documento sem título 1"
+jiuconnect_frontend.zip
+pastas jiuconnect front

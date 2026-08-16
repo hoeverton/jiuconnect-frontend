@@ -1,12 +1,18 @@
-import hero from "../../assets/images/search-hero.png";
-
+import hero from "../../assets/images/herobusca.png";
 import SearchBar from "../ui/SearchBar";
 
-export default function SearchPageHero() {
-  return (
-    <section className="relative h-[380px] overflow-hidden">
+import useProfessorSearch from "../../hooks/useProfessorSearch";
 
-      {/* Background */}
+export default function SearchPageHero() {
+
+  const {
+    filters,
+    handleChange,
+    handleSearch,
+  } = useProfessorSearch();
+
+  return (
+    <section className="relative h-[500px] overflow-hidden">
 
       <img
         src={hero}
@@ -14,11 +20,7 @@ export default function SearchPageHero() {
         className="absolute inset-0 w-full h-full object-cover"
       />
 
-      {/* Overlay */}
-
       <div className="absolute inset-0 bg-gradient-to-r from-[#050816] via-[#050816]/80 to-transparent" />
-
-      {/* Content */}
 
       <div className="relative z-10 h-full flex items-center">
 
@@ -43,9 +45,13 @@ export default function SearchPageHero() {
 
             </p>
 
-            <div className="mt-8 max-w-4xl">
+            <div className="mt-8 max-w-3xl">
 
-              <SearchBar />
+              <SearchBar
+                filters={filters}
+                onChange={handleChange}
+                onSearch={handleSearch}
+              />
 
             </div>
 

@@ -1,12 +1,10 @@
 import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 
-import SearchHero from "../components/search/SearchHero";
-import SearchBar from "../components/search/SearchBar";
-import FilterSidebar from "../components/search/FilterSidebar";
-import TeacherResults from "../components/search/TeacherResults";
-import Pagination from "../components/search/Pagination";
 import CTA from "../components/home/CTA";
+
+import SearchPageHero from "../components/search/SearchPageHero";
+import ProfessorResults from "../components/search/ProfessorResults";
 
 export default function SearchTeachers() {
   return (
@@ -14,26 +12,17 @@ export default function SearchTeachers() {
 
       <Navbar />
 
-      <SearchHero />
+      <main className="pt-24">
 
-      <section className="max-w-7xl mx-auto px-6 py-10">
+        <SearchPageHero />
 
-        <SearchBar />
+        <section className="max-w-7xl mx-auto px-6 py-20">
 
-        <div className="grid grid-cols-12 gap-8 mt-8">
+          <ProfessorResults />
 
-          <aside className="col-span-3">
-            <FilterSidebar />
-          </aside>
+        </section>
 
-          <main className="col-span-9">
-            <TeacherResults />
-            <Pagination />
-          </main>
-
-        </div>
-
-      </section>
+      </main>
 
       <CTA />
 

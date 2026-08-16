@@ -1,43 +1,47 @@
-import { useEffect, useState } from "react";
-import api from "../../services/api";
-
 import ProfessorCard from "./ProfessorCard";
+import ResultsHeader from "../search/ResultsHeader";
 
-export default function ProfessorGrid() {
-
-  const [professores, setProfessores] = useState([]);
-
-  useEffect(() => {
-
-    async function carregar() {
-
-      const response = await api.get("/professores/");
-
-      setProfessores(response.data.results);
-
-    }
-
-    carregar();
-
-  }, []);
+export default function ProfessorGrid({
+  professores = [],
+  title = "Destaques da Semana",
+  subtitle = "Professores",
+  showSort = false,
+  onSortChange,
+}) {
 
   return (
 
-    <section className="max-w-7xl mx-auto py-24 px-8">
+    <section className="max-w-7xl mx-auto py-8 px-8">
 
-      <div className="flex items-center justify-between mb-12">
+      <div className="flex items-end justify-between mb-8">
 
         <div>
 
           <p className="text-purple-400 font-semibold">
-            Professores
+
+            {subtitle}
+
           </p>
 
-          <h2 className="text-5xl font-black">
-            Destaques da Semana
+          <h2 className="text-5xl font-black mt-2">
+
+            {title}
+
           </h2>
 
         </div>
+
+        {showSort && (
+
+          <div className="w-72">
+
+            <ResultsHeader
+              onSortChange={onSortChange}
+            />
+
+          </div>
+
+        )}
 
       </div>
 

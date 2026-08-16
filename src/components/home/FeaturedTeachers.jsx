@@ -67,12 +67,12 @@ export default function FeaturedTeachers() {
               <img
                 src={professor.foto}
                 alt={professor.nome}
-                className="w-full h-72 object-cover"
+                className="w-full h-56 object-cover"
               />
 
               <div className="p-6">
 
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-xl font-bold text-white">
 
                   {professor.nome}
 
