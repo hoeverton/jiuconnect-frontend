@@ -7,6 +7,7 @@ import SearchTeachers from "./pages/SearchTeachers";
 import Login from "./pages/Login";
 import MinhaConta from "./pages/MinhaConta";
 import Disponibilidades from "./pages/Disponibilidades";
+import Agenda from "./pages/Agenda";
 
 function App() {
   return (
@@ -46,6 +47,14 @@ function App() {
       <Route
         path="/disponibilidades"
         element={<Disponibilidades />}
+      />
+      <Route
+        path="/agenda"
+        element={
+          <ProtectedRoute>
+            <Agenda />
+          </ProtectedRoute>
+        }
       />
     </Routes>
     
