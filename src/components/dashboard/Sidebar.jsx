@@ -6,12 +6,14 @@ import {
   Settings,
   LogOut,
   X,
+  Search,
+  Heart,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-const menu = [
+const menuProfessor = [
   {
     label: "Dashboard",
     icon: Home,
@@ -39,6 +41,39 @@ const menu = [
   },
 ];
 
+const menuAluno = [
+  {
+    label: "Dashboard",
+    icon: Home,
+    to: "/dashboard",
+  },
+  {
+    label: "Encontrar Professores",
+    icon: Search,
+    to: "/professores",
+  },
+  {
+    label: "Meus Agendamentos",
+    icon: Calendar,
+    to: "/meus-agendamentos",
+  },
+  {
+    label: "Favoritos",
+    icon: Heart,
+    to: "/favoritos",
+  },
+  {
+    label: "Minha Conta",
+    icon: User,
+    to: "/minha-conta",
+  },
+  {
+    label: "Configurações",
+    icon: Settings,
+    to: "/configuracoes",
+  },
+];
+
 export default function Sidebar({
   sidebarOpen,
   setSidebarOpen,
@@ -46,20 +81,44 @@ export default function Sidebar({
   const { user, logout } = useAuth();
 
   const initial =
-    user?.username?.charAt(0).toUpperCase() || "?";
+    user?.username
+      ?.charAt(0)
+      .toUpperCase() || "?";
+
+  const menu =
+    user?.tipo_usuario === "professor"
+      ? menuProfessor
+      : menuAluno;
+
+  const tituloMenu =
+    user?.tipo_usuario === "professor"
+      ? "Professor Dashboard"
+      : "Área do Aluno";
 
   return (
     <>
-      {/* Overlay Mobile */}
+      {/* =====================================================
+          OVERLAY MOBILE
+      ====================================================== */}
 
       {sidebarOpen && (
         <div
-          onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+          onClick={() =>
+            setSidebarOpen(false)
+          }
+          className="
+            fixed
+            inset-0
+            bg-black/60
+            z-40
+            lg:hidden
+          "
         />
       )}
 
-      {/* Sidebar */}
+      {/* =====================================================
+          SIDEBAR
+      ====================================================== */}
 
       <aside
         className={`
@@ -88,34 +147,61 @@ export default function Sidebar({
           lg:flex
         `}
       >
-        {/* Cabeçalho */}
 
-        <div className="px-8 py-8 border-b border-zinc-800 flex items-center justify-between">
+        {/* =================================================
+            CABEÇALHO
+        ================================================== */}
+
+        <div
+          className="
+            px-8
+            py-8
+            border-b
+            border-zinc-800
+            flex
+            items-center
+            justify-between
+          "
+        >
 
           <div>
 
             <h1 className="text-3xl font-black text-white">
-              Jiu<span className="text-violet-500">Connect</span>
+              Jiu
+              <span className="text-violet-500">
+                Connect
+              </span>
             </h1>
 
             <p className="text-zinc-500 text-sm mt-2">
-              Professor Dashboard
+              {tituloMenu}
             </p>
 
           </div>
 
           <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden"
+            onClick={() =>
+              setSidebarOpen(false)
+            }
+            className="lg:hidden text-zinc-400 hover:text-white"
           >
             <X />
           </button>
 
         </div>
 
-        {/* Menu */}
+        {/* =================================================
+            MENU
+        ================================================== */}
 
-        <nav className="flex-1 px-5 py-8 space-y-2">
+        <nav
+          className="
+            flex-1
+            px-5
+            py-8
+            space-y-2
+          "
+        >
 
           {menu.map((item) => {
 
@@ -125,68 +211,102 @@ export default function Sidebar({
               <NavLink
                 key={item.to}
                 to={item.to}
-                onClick={() => setSidebarOpen(false)}
+                onClick={() =>
+                  setSidebarOpen(false)
+                }
                 className={({ isActive }) =>
                   `
-                  flex
-                  items-center
-                  gap-4
-                  rounded-xl
-                  px-4
-                  py-3
-                  transition-all
+                    flex
+                    items-center
+                    gap-4
+                    rounded-xl
+                    px-4
+                    py-3
+                    transition-all
 
-                  ${
-                    isActive
-                      ? "bg-violet-600 text-white"
-                      : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
-                  }
-                `
+                    ${
+                      isActive
+                        ? "bg-violet-600 text-white"
+                        : "text-zinc-400 hover:bg-zinc-900 hover:text-white"
+                    }
+                  `
                 }
               >
+
                 <Icon size={20} />
 
                 {item.label}
+
               </NavLink>
             );
-
           })}
 
         </nav>
 
-        {/* Rodapé */}
+        {/* =================================================
+            RODAPÉ
+        ================================================== */}
 
-        <div className="border-t border-zinc-800 p-6">
+        <div
+          className="
+            border-t
+            border-zinc-800
+            p-6
+          "
+        >
 
           <div className="flex items-center gap-4 mb-6">
 
-            {/* Avatar */}
+            {/* AVATAR */}
 
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-purple-700 flex items-center justify-center font-bold text-white">
+            <div
+              className="
+                w-12
+                h-12
+                rounded-full
+                bg-gradient-to-br
+                from-violet-500
+                to-purple-700
+                flex
+                items-center
+                justify-center
+                font-bold
+                text-white
+              "
+            >
               {initial}
             </div>
 
-            {/* Dados do usuário */}
+            {/* DADOS */}
 
-            <div>
+            <div className="min-w-0">
 
-              <p className="text-white font-semibold">
-                {user?.username || "Usuário"}
+              <p className="text-white font-semibold truncate">
+                {user?.username ||
+                  "Usuário"}
               </p>
 
               <p className="text-zinc-500 text-sm capitalize">
-                {user?.tipo_usuario || ""}
+                {user?.tipo_usuario ||
+                  ""}
               </p>
 
             </div>
 
           </div>
 
-          {/* Logout */}
+          {/* LOGOUT */}
 
           <button
             onClick={logout}
-            className="flex items-center gap-3 text-zinc-400 hover:text-red-400 transition"
+            className="
+              flex
+              items-center
+              gap-3
+              text-zinc-400
+              hover:text-red-400
+              transition
+            "
           >
 
             <LogOut size={20} />

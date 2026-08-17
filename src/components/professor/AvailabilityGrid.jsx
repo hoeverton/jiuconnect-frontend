@@ -1,36 +1,121 @@
-export default function AvailabilityGrid() {
+import { useEffect, useState } from "react";
+import api from "../../services/api";
 
-  const horarios = [
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "14:00",
-    "15:00",
-    "16:00",
-    "17:00",
-    "19:00",
-    "20:00",
-  ];
+export default function AvailabilityGrid({
+  professor,
+  onAgendar,
+}) {
+  const [dias, setDias] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const dias = [
-    "SEG",
-    "TER",
-    "QUA",
-    "QUI",
-    "SEX",
-    "SÁB",
-  ];
+  useEffect(() => {
+    async function carregarDisponibilidades() {
+      if (!professor?.id) {
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const response = await api.get(
+          "/disponibilidades/",
+          {
+            params: {
+              professor: professor.id,
+            },
+          }
+        );
+
+        setDias(response.data || []);
+
+      } catch (error) {
+        console.error(
+          "Erro ao carregar disponibilidades:",
+          error
+        );
+
+        setDias([]);
+
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    carregarDisponibilidades();
+  }, [professor]);
+
+  if (loading) {
+    return (
+      <section className="mt-24">
+
+        <h2 className="text-4xl font-black mb-10">
+          Disponibilidade
+        </h2>
+
+        <div
+          className="
+            bg-[#111827]
+            rounded-3xl
+            border
+            border-white/10
+            p-8
+          "
+        >
+          <p className="text-gray-400">
+            Carregando horários disponíveis...
+          </p>
+        </div>
+
+      </section>
+    );
+  }
+
+  if (dias.length === 0) {
+    return (
+      <section className="mt-24">
+
+        <h2 className="text-4xl font-black mb-10">
+          Disponibilidade
+        </h2>
+
+        <div
+          className="
+            bg-[#111827]
+            rounded-3xl
+            border
+            border-white/10
+            p-8
+          "
+        >
+
+          <p className="text-gray-400">
+            Este professor não possui horários disponíveis no momento.
+          </p>
+
+        </div>
+
+      </section>
+    );
+  }
 
   return (
-
     <section className="mt-24">
 
-      <h2 className="text-4xl font-black mb-10">
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-10">
 
-        Disponibilidade
+        <div>
 
-      </h2>
+          <h2 className="text-4xl font-black">
+            Disponibilidade
+          </h2>
+
+          <p className="text-gray-400 mt-2">
+            Escolha um dia e encontre um horário para sua aula.
+          </p>
+
+        </div>
+
+      </div>
 
       <div
         className="
@@ -42,111 +127,118 @@ export default function AvailabilityGrid() {
         "
       >
 
-        <div className="overflow-x-auto">
+        <div className="p-6 md:p-8">
 
-          <table className="w-full">
+          {/* DIAS */}
 
-            <thead>
+          <div className="flex gap-3 overflow-x-auto pb-3">
 
-              <tr className="border-b border-white/10">
+            {dias.map((dia) => {
 
-                <th className="p-5 text-left">
+              const data = new Date(
+                `${dia.data}T00:00:00`
+              );
 
-                  Horário
+              const diaSemana =
+                data
+                  .toLocaleDateString(
+                    "pt-BR",
+                    {
+                      weekday: "short",
+                    }
+                  )
+                  .replace(".", "")
+                  .toUpperCase();
 
-                </th>
+              const dataFormatada =
+                data
+                  .toLocaleDateString(
+                    "pt-BR",
+                    {
+                      day: "2-digit",
+                      month: "short",
+                    }
+                  )
+                  .replace(".", "")
+                  .toUpperCase();
 
-                {dias.map((dia) => (
-
-                  <th
-                    key={dia}
-                    className="text-center p-5"
-                  >
-
-                    {dia}
-
-                  </th>
-
-                ))}
-
-              </tr>
-
-            </thead>
-
-            <tbody>
-
-              {horarios.map((hora) => (
-
-                <tr
-                  key={hora}
-                  className="border-b border-white/5 hover:bg-white/5 transition"
+              return (
+                <div
+                  key={dia.data}
+                  className="
+                    min-w-[110px]
+                    rounded-2xl
+                    border
+                    border-white/10
+                    bg-white/[0.02]
+                    p-4
+                  "
                 >
 
-                  <td className="p-5 font-semibold text-gray-300">
+                  <div className="text-xs text-purple-300 font-semibold">
+                    {diaSemana}
+                  </div>
 
-                    {hora}
+                  <div className="text-lg font-black text-white mt-1">
+                    {dataFormatada}
+                  </div>
 
-                  </td>
+                  <div className="mt-4 space-y-2">
 
-                  {dias.map((dia, index) => (
+                    {dia.horarios.map(
+                      (horario) => (
 
-                    <td
-                      key={dia + hora}
-                      className="text-center"
-                    >
-
-                      <button
-                        className={`
-                          w-5
-                          h-5
-                          rounded-full
-                          transition
-                          ${
-                            (hora.length + index) % 3 === 0
-                              ? "bg-gray-600"
-                              : "bg-green-500 hover:scale-125"
+                        <button
+                          key={horario.id}
+                          type="button"
+                          onClick={() =>
+                            onAgendar?.(
+                              horario
+                            )
                           }
-                        `}
-                      />
+                          className="
+                            w-full
+                            rounded-xl
+                            border
+                            border-purple-500/20
+                            bg-purple-500/10
+                            px-3
+                            py-2
+                            text-sm
+                            font-semibold
+                            text-purple-300
+                            hover:bg-purple-600
+                            hover:text-white
+                            hover:border-purple-500
+                            transition
+                          "
+                        >
+                          {horario.hora_inicio.slice(
+                            0,
+                            5
+                          )}
+                          {" → "}
+                          {horario.hora_fim.slice(
+                            0,
+                            5
+                          )}
+                        </button>
 
-                    </td>
+                      )
+                    )}
 
-                  ))}
+                  </div>
 
-                </tr>
+                </div>
+              );
+            })}
 
-              ))}
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-
-      <div className="flex gap-8 mt-6 text-sm text-gray-400">
-
-        <div className="flex items-center gap-2">
-
-          <div className="w-4 h-4 rounded-full bg-green-500"></div>
-
-          Disponível
-
-        </div>
-
-        <div className="flex items-center gap-2">
-
-          <div className="w-4 h-4 rounded-full bg-gray-600"></div>
-
-          Ocupado
+          </div>
 
         </div>
 
       </div>
 
     </section>
-
   );
-
 }

@@ -47,3 +47,16 @@ export async function cancelarAgendamento(id) {
 
   return response.data;
 }
+
+
+// =========================================================
+// MEUS AGENDAMENTOS DO ALUNO
+// =========================================================
+
+export async function getMeusAgendamentos() {
+  const response = await api.get(
+    "/me/agendamentos/"
+  );
+
+  return response.data;
+}
