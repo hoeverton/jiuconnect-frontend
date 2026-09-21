@@ -26,6 +26,9 @@ export default function DashboardAluno() {
 
   const [favoritos, setFavoritos] =
     useState([]);
+   
+  const [progresso, setProgresso] =
+  useState([]);  
 
   const [loading, setLoading] =
     useState(true);
@@ -46,9 +49,11 @@ export default function DashboardAluno() {
         const [
           agendamentosResponse,
           favoritosResponse,
+          progressoResponse,
         ] = await Promise.all([
           api.get("/me/agendamentos/"),
           api.get("/favoritos/"),
+          api.get("/meu-progresso/"),
         ]);
 
         const agendamentosData =
@@ -58,6 +63,10 @@ export default function DashboardAluno() {
         const favoritosData =
           favoritosResponse.data?.results ||
           [];
+
+        const progressoData = Array.isArray(progressoResponse.data)
+          ? progressoResponse.data
+          : progressoResponse.data?.results || [];  
 
         setAgendamentos(
           agendamentosData
@@ -94,6 +103,8 @@ export default function DashboardAluno() {
         setFavoritos(
           professores.filter(Boolean)
         );
+
+        setProgresso(progressoData);
 
       } catch (error) {
         console.error(
@@ -141,10 +152,36 @@ export default function DashboardAluno() {
   // PRÓXIMA AULA
   // =========================================================
 
+  const proximasAulasOrdenadas = [...proximasAulas].sort((a, b) => {
+    const dataHoraA = new Date(`${a.data}T${a.hora_inicio}`);
+    const dataHoraB = new Date(`${b.data}T${b.hora_inicio}`);
+
+    return dataHoraA - dataHoraB;
+  });
+
   const proximaAula =
-    proximasAulas.length > 0
-      ? proximasAulas[0]
+    proximasAulasOrdenadas.length > 0
+      ? proximasAulasOrdenadas[0]
       : null;
+
+  // =========================================================
+  // PROGRESSO DA TRILHA
+  // =========================================================
+
+  const tecnicasAprendidas = progresso.filter(
+    (item) => item.aprendido
+  );
+
+  const totalTecnicas = progresso.length;
+
+  const totalAprendidas = tecnicasAprendidas.length;
+
+  const percentualProgresso =
+    totalTecnicas > 0
+      ? Math.round(
+          (totalAprendidas / totalTecnicas) * 100
+        )
+      : 0;    
 
   // =========================================================
   // FORMATAR DATA
@@ -177,6 +214,22 @@ export default function DashboardAluno() {
     }
 
     return hora.slice(0, 5);
+  }
+
+  // =========================================================
+  // FOTO
+  // =========================================================
+
+  function getPhotoUrl(foto) {
+    if (!foto) {
+      return null;
+    }
+
+    if (foto.startsWith("http")) {
+      return foto;
+    }
+
+    return `http://127.0.0.1:8000${foto}`;
   }
 
   // =========================================================
@@ -475,16 +528,50 @@ export default function DashboardAluno() {
                       w-16
                       h-16
                       rounded-2xl
+                      overflow-hidden
                       bg-violet-500/10
                       border
                       border-violet-500/20
                       flex
                       items-center
                       justify-center
-                      text-2xl
+                      flex-shrink-0
                     "
                   >
-                    🥋
+                    {getPhotoUrl(proximaAula.professor_foto) ? (
+                      <img
+                        src={getPhotoUrl(proximaAula.professor_foto)}
+                        alt={
+                          proximaAula.professor_nome ||
+                          "Professor"
+                        }
+                        className="
+                          w-full
+                          h-full
+                          object-cover
+                        "
+                      />
+                    ) : (
+                      <div
+                        className="
+                          w-full
+                          h-full
+                          flex
+                          items-center
+                          justify-center
+                          bg-gradient-to-br
+                          from-violet-500
+                          to-purple-700
+                          text-white
+                          text-xl
+                          font-bold
+                        "
+                      >
+                        {proximaAula.professor_nome
+                          ?.charAt(0)
+                          .toUpperCase() || "P"}
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -625,6 +712,125 @@ export default function DashboardAluno() {
           )}
 
         </section>
+                {/* ===================================================
+                    MINHA TRILHA ATUAL
+                ==================================================== */}
+
+                <section>
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <h2 className="text-xl font-bold text-white">
+                        Minha trilha atual
+                      </h2>
+
+                      <p className="text-zinc-500 text-sm mt-1">
+                        Continue evoluindo no seu aprendizado.
+                      </p>
+                    </div>
+
+                    <Link
+                      to="/meu-aprendizado"
+                      className="
+                        inline-flex
+                        items-center
+                        gap-2
+                        text-violet-400
+                        hover:text-violet-300
+                        text-sm
+                        font-medium
+                        transition
+                      "
+                    >
+                      Ver meu aprendizado
+                      <ArrowRight size={16} />
+                    </Link>
+                  </div>
+
+                  <Card className="p-6">
+
+                    {progresso.length > 0 ? (
+                      <>
+                        <div className="flex items-center justify-between mb-5">
+
+                          <div>
+                            <p className="text-zinc-500 text-sm">
+                              Trilha
+                            </p>
+
+                            <h3 className="text-2xl font-black text-white mt-1">
+                              {progresso[0]?.trilha_nome}
+                            </h3>
+                          </div>
+
+                          <div className="text-right">
+                            <p className="text-2xl font-black text-violet-400">
+                              {percentualProgresso}%
+                            </p>
+
+                            <p className="text-zinc-500 text-xs mt-1">
+                              concluído
+                            </p>
+                          </div>
+
+                        </div>
+
+                        {/* BARRA DE PROGRESSO */}
+
+                        <div className="w-full h-2 bg-zinc-800 rounded-full overflow-hidden">
+                          <div
+                            className="
+                              h-full
+                              bg-violet-500
+                              rounded-full
+                              transition-all
+                              duration-500
+                            "
+                            style={{
+                              width: `${percentualProgresso}%`,
+                            }}
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-between mt-4">
+
+                          <p className="text-zinc-500 text-sm">
+                            {totalAprendidas} de {totalTecnicas} técnicas aprendidas
+                          </p>
+
+                          <Link
+                            to="/meu-aprendizado"
+                            className="
+                              inline-flex
+                              items-center
+                              gap-2
+                              text-violet-400
+                              hover:text-violet-300
+                              text-sm
+                              font-medium
+                            "
+                          >
+                            Continuar
+                            <ArrowRight size={16} />
+                          </Link>
+
+                        </div>
+                      </>
+                    ) : (
+                      <div className="py-8 text-center">
+
+                        <p className="text-zinc-500">
+                          Você ainda não possui uma trilha de aprendizado.
+                        </p>
+
+                        <p className="text-zinc-600 text-sm mt-2">
+                          Seu professor poderá atribuir uma trilha para você.
+                        </p>
+
+                      </div>
+                    )}
+
+                  </Card>
+                </section>
 
         {/* ===================================================
             FAVORITOS
@@ -726,9 +932,9 @@ export default function DashboardAluno() {
                 .slice(0, 3)
                 .map((professor) => {
 
-                  const foto =
-                    professor.foto ||
-                    "https://ui-avatars.com/api/?name=Professor&background=7B2EFF&color=fff";
+                  const foto = getPhotoUrl(
+                    professor.foto
+                  );
 
                   return (
                     <Card
@@ -738,15 +944,37 @@ export default function DashboardAluno() {
 
                       <div className="relative">
 
-                        <img
-                          src={foto}
-                          alt={professor.nome}
-                          className="
-                            w-full
-                            h-44
-                            object-cover
-                          "
-                        />
+                        {foto ? (
+                          <img
+                            src={foto}
+                            alt={professor.nome}
+                            className="
+                              w-full
+                              h-44
+                              object-cover
+                            "
+                          />
+                        ) : (
+                          <div
+                            className="
+                              w-full
+                              h-44
+                              bg-gradient-to-br
+                              from-violet-500
+                              to-purple-700
+                              flex
+                              items-center
+                              justify-center
+                              text-5xl
+                              font-bold
+                              text-white
+                            "
+                          >
+                            {professor.nome
+                              ?.charAt(0)
+                              .toUpperCase() || "P"}
+                          </div>
+                        )}
 
                         <div
                           className="

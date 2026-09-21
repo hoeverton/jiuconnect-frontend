@@ -8,6 +8,8 @@ import {
   X,
   Search,
   Heart,
+  Users,
+  BookOpen,
 } from "lucide-react";
 
 import { NavLink } from "react-router-dom";
@@ -30,6 +32,16 @@ const menuProfessor = [
     to: "/agenda",
   },
   {
+    label: "Meus Alunos",
+    icon: Users,
+    to: "/meus-alunos",
+  },
+  {
+    label: "Trilhas",
+    icon: BookOpen,
+    to: "/trilhas",
+  },
+  {
     label: "Disponibilidades",
     icon: Clock3,
     to: "/disponibilidades",
@@ -48,6 +60,11 @@ const menuAluno = [
     to: "/dashboard",
   },
   {
+    label: "Meu Aprendizado",
+    icon: BookOpen,
+    to: "/meu-aprendizado",
+  },
+    {
     label: "Encontrar Professores",
     icon: Search,
     to: "/professores",

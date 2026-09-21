@@ -25,8 +25,15 @@ export default function Login() {
     setLoading(false);
 
     if (result.success) {
-      
+      // Professor sem perfil profissional
+      if (result.needsProfessorProfile) {
+        navigate("/cadastro-professor");
+        return;
+      }
+
+      // Aluno ou professor com perfil
       navigate("/dashboard");
+
     } else {
       setError("Usuário ou senha inválidos.");
     }
@@ -118,6 +125,20 @@ export default function Login() {
 
               </div>
 
+              {/* ESQUECEU A SENHA */}
+
+              <div className="flex justify-end mt-2">
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/recuperar-senha")}
+                  className="text-sm text-violet-400 hover:text-violet-300 transition"
+                >
+                  Esqueceu sua senha?
+                </button>
+
+              </div>
+
             </div>
 
             {error && (
@@ -135,6 +156,24 @@ export default function Login() {
             </button>
 
           </form>
+
+          {/* CADASTRO */}
+
+          <div className="mt-8 pt-6 border-t border-zinc-800 text-center">
+
+            <p className="text-zinc-500 text-sm">
+              Ainda não possui uma conta?
+            </p>
+
+            <button
+              type="button"
+              onClick={() => navigate("/cadastro")}
+              className="mt-2 text-violet-400 hover:text-violet-300 font-semibold transition"
+            >
+              Criar minha conta
+            </button>
+
+          </div>
 
         </div>
 

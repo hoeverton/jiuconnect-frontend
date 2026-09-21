@@ -1,9 +1,22 @@
 import { useEffect, useState } from "react";
+
 import Card from "../ui/Card";
 import Button from "../ui/Button";
-import { getMyProfessorProfile, updateProfessorProfile } from "../../services/professorService";
+
+import { useAuth } from "../../context/AuthContext";
+
+import {
+  getMyProfessorProfile,
+  updateProfessorProfile,
+} from "../../services/professorService";
 
 export default function ProfileCard() {
+
+  const { user } = useAuth();
+
+  const isProfessor =
+    user?.tipo_usuario === "professor";
+
   const [profile, setProfile] = useState(null);
 
   const [faixa, setFaixa] = useState("");
@@ -18,112 +31,249 @@ export default function ProfileCard() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
+  // =========================================================
+  // CARREGAR PERFIL DO PROFESSOR
+  // =========================================================
+
   useEffect(() => {
+
+    // Se não for professor,
+    // não chama /professores/me/
+    
+    if (!isProfessor) {
+
+      setLoading(false);
+
+      return;
+    }
+
     async function loadProfile() {
+
       try {
-        const data = await getMyProfessorProfile();
+
+        setLoading(true);
+        setError("");
+
+        const data =
+          await getMyProfessorProfile();
 
         setProfile(data);
 
-        setFaixa(data.faixa || "");
-        setBiografia(data.biografia || "");
-        setPrecoHora(data.preco_hora || "");
-        setCidade(data.cidade || "");
-        setEspecialidade(data.especialidade || "");
+        setFaixa(
+          data.faixa || ""
+        );
+
+        setBiografia(
+          data.biografia || ""
+        );
+
+        setPrecoHora(
+          data.preco_hora || ""
+        );
+
+        setCidade(
+          data.cidade || ""
+        );
+
+        setEspecialidade(
+          data.especialidade || ""
+        );
 
       } catch (error) {
-        console.error("Erro ao carregar perfil:", error);
+
+        console.error(
+          "Erro ao carregar perfil:",
+          error
+        );
 
         setError(
           "Não foi possível carregar seu perfil profissional."
         );
+
       } finally {
+
         setLoading(false);
+
       }
     }
 
     loadProfile();
-  }, []);
+
+  }, [isProfessor]);
+
+  // =========================================================
+  // SALVAR PERFIL
+  // =========================================================
 
   async function handleSubmit(event) {
+
     event.preventDefault();
 
     setMessage("");
     setError("");
 
+    // Segurança extra
+
+    if (!isProfessor) {
+      return;
+    }
+
+    // Validações
+
     if (!faixa.trim()) {
-      setError("Informe sua faixa.");
+
+      setError(
+        "Informe sua faixa."
+      );
+
       return;
     }
 
     if (!cidade.trim()) {
-      setError("Informe sua cidade.");
+
+      setError(
+        "Informe sua cidade."
+      );
+
       return;
     }
 
     if (!especialidade.trim()) {
-      setError("Informe sua especialidade.");
+
+      setError(
+        "Informe sua especialidade."
+      );
+
       return;
     }
 
     if (!precoHora) {
-      setError("Informe o valor da aula.");
+
+      setError(
+        "Informe o valor da aula."
+      );
+
       return;
     }
 
     setSaving(true);
 
     try {
-      const data = await updateProfessorProfile({
-        faixa: faixa.trim(),
-        biografia: biografia.trim(),
-        preco_hora: precoHora,
-        cidade: cidade.trim(),
-        especialidade: especialidade.trim(),
-      });
+
+      const data =
+        await updateProfessorProfile({
+
+          faixa:
+            faixa.trim(),
+
+          biografia:
+            biografia.trim(),
+
+          preco_hora:
+            precoHora,
+
+          cidade:
+            cidade.trim(),
+
+          especialidade:
+            especialidade.trim(),
+
+        });
+
+      // Atualiza perfil
 
       setProfile(data);
 
-      setFaixa(data.faixa || "");
-      setBiografia(data.biografia || "");
-      setPrecoHora(data.preco_hora || "");
-      setCidade(data.cidade || "");
-      setEspecialidade(data.especialidade || "");
+      setFaixa(
+        data.faixa || ""
+      );
 
-      setMessage("Perfil profissional atualizado com sucesso.");
+      setBiografia(
+        data.biografia || ""
+      );
+
+      setPrecoHora(
+        data.preco_hora || ""
+      );
+
+      setCidade(
+        data.cidade || ""
+      );
+
+      setEspecialidade(
+        data.especialidade || ""
+      );
+
+      setMessage(
+        "Perfil profissional atualizado com sucesso."
+      );
 
     } catch (error) {
-      console.error("Erro ao atualizar perfil:", error);
+
+      console.error(
+        "Erro ao atualizar perfil:",
+        error
+      );
 
       setError(
         "Não foi possível atualizar seu perfil profissional."
       );
+
     } finally {
+
       setSaving(false);
+
     }
   }
 
-  if (loading) {
-    return (
-      <Card className="p-6">
-        <p className="text-zinc-400">
-          Carregando perfil...
-        </p>
-      </Card>
-    );
+  // =========================================================
+  // SE NÃO FOR PROFESSOR
+  // =========================================================
+
+  if (!isProfessor) {
+    return null;
   }
 
+  // =========================================================
+  // LOADING
+  // =========================================================
+
+  if (loading) {
+
+    return (
+      <Card className="p-6">
+
+        <p className="text-zinc-400">
+          Carregando perfil profissional...
+        </p>
+
+      </Card>
+    );
+
+  }
+
+  // =========================================================
+  // TELA
+  // =========================================================
+
   return (
+
     <Card className="p-6">
 
       <div className="mb-8">
+
         <h2 className="text-xl font-semibold text-white">
+
           Perfil Profissional
+
         </h2>
 
         <p className="text-zinc-500 text-sm mt-1">
+
           Essas informações serão exibidas no seu perfil público.
+
         </p>
+
       </div>
 
       <form
@@ -131,16 +281,25 @@ export default function ProfileCard() {
         className="space-y-6"
       >
 
-        {/* Faixa */}
+        {/* ================================================= */}
+        {/* FAIXA */}
+        {/* ================================================= */}
 
         <div>
+
           <label className="block text-sm text-zinc-400 mb-2">
+
             Faixa
+
           </label>
 
           <select
             value={faixa}
-            onChange={(event) => setFaixa(event.target.value)}
+            onChange={(event) =>
+              setFaixa(
+                event.target.value
+              )
+            }
             className="
               w-full
               h-12
@@ -157,6 +316,7 @@ export default function ProfileCard() {
               focus:ring-violet-500/20
             "
           >
+
             <option value="">
               Selecione sua faixa
             </option>
@@ -190,20 +350,28 @@ export default function ProfileCard() {
             </option>
 
           </select>
+
         </div>
 
-        {/* Especialidade */}
+        {/* ================================================= */}
+        {/* ESPECIALIDADE */}
+        {/* ================================================= */}
 
         <div>
+
           <label className="block text-sm text-zinc-400 mb-2">
+
             Especialidade
+
           </label>
 
           <input
             type="text"
             value={especialidade}
             onChange={(event) =>
-              setEspecialidade(event.target.value)
+              setEspecialidade(
+                event.target.value
+              )
             }
             placeholder="Ex.: Jiu-Jitsu, No-Gi, Defesa Pessoal..."
             className="
@@ -222,20 +390,28 @@ export default function ProfileCard() {
               focus:ring-violet-500/20
             "
           />
+
         </div>
 
-        {/* Cidade */}
+        {/* ================================================= */}
+        {/* CIDADE */}
+        {/* ================================================= */}
 
         <div>
+
           <label className="block text-sm text-zinc-400 mb-2">
+
             Cidade
+
           </label>
 
           <input
             type="text"
             value={cidade}
             onChange={(event) =>
-              setCidade(event.target.value)
+              setCidade(
+                event.target.value
+              )
             }
             placeholder="Ex.: Curitiba"
             className="
@@ -254,18 +430,32 @@ export default function ProfileCard() {
               focus:ring-violet-500/20
             "
           />
+
         </div>
 
-        {/* Valor */}
+        {/* ================================================= */}
+        {/* VALOR */}
+        {/* ================================================= */}
 
         <div>
+
           <label className="block text-sm text-zinc-400 mb-2">
+
             Valor da aula
+
           </label>
 
           <div className="relative">
 
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500">
+            <span
+              className="
+                absolute
+                left-4
+                top-1/2
+                -translate-y-1/2
+                text-zinc-500
+              "
+            >
               R$
             </span>
 
@@ -275,7 +465,9 @@ export default function ProfileCard() {
               step="0.01"
               value={precoHora}
               onChange={(event) =>
-                setPrecoHora(event.target.value)
+                setPrecoHora(
+                  event.target.value
+                )
               }
               placeholder="100.00"
               className="
@@ -297,19 +489,27 @@ export default function ProfileCard() {
             />
 
           </div>
+
         </div>
 
-        {/* Biografia */}
+        {/* ================================================= */}
+        {/* BIOGRAFIA */}
+        {/* ================================================= */}
 
         <div>
+
           <label className="block text-sm text-zinc-400 mb-2">
+
             Biografia
+
           </label>
 
           <textarea
             value={biografia}
             onChange={(event) =>
-              setBiografia(event.target.value)
+              setBiografia(
+                event.target.value
+              )
             }
             rows={5}
             placeholder="Conte um pouco sobre sua experiência como professor..."
@@ -332,45 +532,67 @@ export default function ProfileCard() {
           />
 
           <p className="text-xs text-zinc-600 mt-2">
-            Uma boa biografia ajuda os alunos a conhecerem melhor seu trabalho.
+
+            Uma boa biografia ajuda os alunos
+            a conhecerem melhor seu trabalho.
+
           </p>
+
         </div>
 
-        {/* Mensagem de sucesso */}
+        {/* ================================================= */}
+        {/* SUCESSO */}
+        {/* ================================================= */}
 
         {message && (
-          <div className="
-            rounded-xl
-            border
-            border-green-500/20
-            bg-green-500/10
-            px-4
-            py-3
-            text-sm
-            text-green-400
-          ">
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-green-500/20
+              bg-green-500/10
+              px-4
+              py-3
+              text-sm
+              text-green-400
+            "
+          >
+
             {message}
+
           </div>
+
         )}
 
-        {/* Mensagem de erro */}
+        {/* ================================================= */}
+        {/* ERRO */}
+        {/* ================================================= */}
 
         {error && (
-          <div className="
-            rounded-xl
-            border
-            border-red-500/20
-            bg-red-500/10
-            px-4
-            py-3
-            text-sm
-            text-red-400
-          ">
+
+          <div
+            className="
+              rounded-xl
+              border
+              border-red-500/20
+              bg-red-500/10
+              px-4
+              py-3
+              text-sm
+              text-red-400
+            "
+          >
+
             {error}
+
           </div>
+
         )}
 
-        {/* Botão */}
+        {/* ================================================= */}
+        {/* BOTÃO */}
+        {/* ================================================= */}
 
         <div className="flex justify-end pt-2">
 
@@ -378,9 +600,11 @@ export default function ProfileCard() {
             type="submit"
             disabled={saving}
           >
+
             {saving
               ? "Salvando..."
               : "Salvar alterações"}
+
           </Button>
 
         </div>
@@ -388,5 +612,6 @@ export default function ProfileCard() {
       </form>
 
     </Card>
+
   );
 }

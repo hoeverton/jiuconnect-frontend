@@ -3,6 +3,8 @@ import Card from "../ui/Card";
 import Button from "../ui/Button";
 import { Camera } from "lucide-react";
 
+import { useAuth } from "../../context/AuthContext";
+
 import {
   getMyProfessorProfile,
   updateProfessorPhoto,
@@ -11,37 +13,71 @@ import {
 export default function PhotoCard() {
   const fileInputRef = useRef(null);
 
+  const {
+    user,
+    updatePhoto,
+  } = useAuth();
+
   const [profile, setProfile] = useState(null);
+
   const [preview, setPreview] = useState(null);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+
   const [saving, setSaving] = useState(false);
 
   const [message, setMessage] = useState("");
+
   const [error, setError] = useState("");
 
+  const isProfessor =
+    user?.tipo_usuario === "professor";
+
+  // =========================================================
+  // CARREGAR PERFIL DO PROFESSOR
+  // =========================================================
+
   useEffect(() => {
+    if (!isProfessor) {
+      return;
+    }
+
     async function loadProfile() {
       try {
-        const data = await getMyProfessorProfile();
+        setLoading(true);
+        setError("");
+
+        const data =
+          await getMyProfessorProfile();
 
         setProfile(data);
+
       } catch (error) {
-        console.error("Erro ao carregar foto:", error);
+        console.error(
+          "Erro ao carregar perfil do professor:",
+          error
+        );
 
         setError(
           "Não foi possível carregar sua foto."
         );
+
       } finally {
         setLoading(false);
       }
     }
 
     loadProfile();
-  }, []);
+
+  }, [isProfessor]);
+
+  // =========================================================
+  // SELECIONAR FOTO
+  // =========================================================
 
   function handleSelectPhoto(event) {
-    const file = event.target.files?.[0];
+    const file =
+      event.target.files?.[0];
 
     if (!file) {
       return;
@@ -50,7 +86,6 @@ export default function PhotoCard() {
     setMessage("");
     setError("");
 
-    // Validação do formato
     const allowedTypes = [
       "image/jpeg",
       "image/png",
@@ -67,8 +102,8 @@ export default function PhotoCard() {
       return;
     }
 
-    // Validação do tamanho
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize =
+      5 * 1024 * 1024;
 
     if (file.size > maxSize) {
       setError(
@@ -80,14 +115,17 @@ export default function PhotoCard() {
       return;
     }
 
-    // Preview imediato
-    const previewUrl = URL.createObjectURL(file);
+    const previewUrl =
+      URL.createObjectURL(file);
 
     setPreview(previewUrl);
 
-    // Envia automaticamente
     uploadPhoto(file);
   }
+
+  // =========================================================
+  // ENVIAR FOTO
+  // =========================================================
 
   async function uploadPhoto(file) {
     setSaving(true);
@@ -95,15 +133,31 @@ export default function PhotoCard() {
     setError("");
 
     try {
-      const data = await updateProfessorPhoto(file);
+      if (isProfessor) {
 
-      setProfile(data);
+        const data =
+          await updateProfessorPhoto(
+            file
+          );
+
+        setProfile(data);
+
+      } else {
+
+        const result =
+          await updatePhoto(file);
+
+        if (!result.success) {
+          throw result.error;
+        }
+      }
 
       setPreview(null);
 
       setMessage(
         "Foto atualizada com sucesso."
       );
+
     } catch (error) {
       console.error(
         "Erro ao atualizar foto:",
@@ -115,6 +169,7 @@ export default function PhotoCard() {
       setError(
         "Não foi possível atualizar sua foto."
       );
+
     } finally {
       setSaving(false);
 
@@ -124,34 +179,72 @@ export default function PhotoCard() {
     }
   }
 
+  // =========================================================
+  // URL DA FOTO
+  // =========================================================
+
   function getPhotoUrl() {
+
     if (preview) {
       return preview;
     }
 
-    if (!profile?.foto) {
+    let foto = null;
+
+    if (isProfessor) {
+      foto = profile?.foto;
+    } else {
+      foto = user?.foto;
+    }
+
+    if (!foto) {
       return null;
     }
 
-    if (profile.foto.startsWith("http")) {
-      return profile.foto;
+    if (foto.startsWith("http")) {
+      return foto;
     }
 
-    return `http://127.0.0.1:8000${profile.foto}`;
+    return `http://127.0.0.1:8000${foto}`;
   }
 
-  const photoUrl = getPhotoUrl();
+  const photoUrl =
+    getPhotoUrl();
+
+  // =========================================================
+  // INICIAL
+  // =========================================================
+
+  const nome =
+    isProfessor
+      ? profile?.nome
+      : user?.username;
 
   const initial =
-    profile?.nome?.charAt(0).toUpperCase() || "?";
+    nome?.charAt(0).toUpperCase() || "?";
 
-  if (loading) {
+  // =========================================================
+  // LOADING PROFESSOR
+  // =========================================================
+
+  if (
+    isProfessor &&
+    loading
+  ) {
     return (
       <Card className="p-6">
 
         <div className="flex justify-center">
 
-          <div className="w-28 h-28 rounded-full bg-zinc-800 animate-pulse" />
+          <div
+            className="
+              w-28
+              h-28
+              rounded-full
+              bg-zinc-800
+              animate-pulse
+            "
+          />
 
         </div>
 
@@ -159,12 +252,16 @@ export default function PhotoCard() {
     );
   }
 
+  // =========================================================
+  // RENDER
+  // =========================================================
+
   return (
     <Card className="p-6">
 
       <div className="flex flex-col items-center">
 
-        {/* Avatar */}
+        {/* FOTO */}
 
         <div className="relative">
 
@@ -172,7 +269,7 @@ export default function PhotoCard() {
 
             <img
               src={photoUrl}
-              alt="Foto do professor"
+              alt="Foto do usuário"
               className="
                 w-28
                 h-28
@@ -210,7 +307,7 @@ export default function PhotoCard() {
 
           )}
 
-          {/* Botão da câmera */}
+          {/* CÂMERA */}
 
           <button
             type="button"
@@ -240,7 +337,7 @@ export default function PhotoCard() {
 
         </div>
 
-        {/* Input de arquivo */}
+        {/* INPUT */}
 
         <input
           ref={fileInputRef}
@@ -250,17 +347,22 @@ export default function PhotoCard() {
           className="hidden"
         />
 
-        {/* Nome */}
+        {/* NOME */}
 
         <h3 className="mt-6 text-xl font-semibold text-white">
-          {profile?.nome || "Professor"}
+          {nome ||
+            (isProfessor
+              ? "Professor"
+              : "Aluno")}
         </h3>
 
-        <p className="text-zinc-500 text-sm mt-1">
-          Professor
+        {/* TIPO */}
+
+        <p className="text-zinc-500 text-sm mt-1 capitalize">
+          {user?.tipo_usuario || ""}
         </p>
 
-        {/* Botão */}
+        {/* BOTÃO */}
 
         <Button
           type="button"
@@ -277,13 +379,13 @@ export default function PhotoCard() {
             : "Alterar foto"}
         </Button>
 
-        {/* Informação */}
+        {/* INFORMAÇÃO */}
 
         <p className="text-xs text-zinc-600 text-center mt-4">
           JPG, PNG ou WEBP · máximo 5 MB
         </p>
 
-        {/* Sucesso */}
+        {/* SUCESSO */}
 
         {message && (
           <div
@@ -305,7 +407,7 @@ export default function PhotoCard() {
           </div>
         )}
 
-        {/* Erro */}
+        {/* ERRO */}
 
         {error && (
           <div

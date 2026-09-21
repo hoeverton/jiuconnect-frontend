@@ -1,23 +1,31 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import BookingModal from "./BookingModal";
 import AvailabilityGrid from "./AvailabilityGrid";
 
 import api from "../../services/api";
 import Button from "../ui/Button";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ProfessorProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
-  const [professor, setProfessor] =
-    useState(null);
+  const { user } = useAuth();
 
-  const [modalOpen, setModalOpen] =
-    useState(false);
+  const [professor, setProfessor] = useState(null);
+
+  const [modalOpen, setModalOpen] = useState(false);
 
   const [horarioSelecionado, setHorarioSelecionado] =
     useState(null);
+
+  const [whatsappLoading, setWhatsappLoading] =
+    useState(false);
+
+  const [whatsappError, setWhatsappError] =
+    useState("");
 
   const fotoPadrao =
     "https://ui-avatars.com/api/?name=Professor&background=7B2EFF&color=fff&size=600";
@@ -59,6 +67,73 @@ export default function ProfessorProfile() {
     );
 
     setModalOpen(true);
+  }
+
+  // =========================================================
+  // WHATSAPP
+  // =========================================================
+
+  async function handleWhatsApp() {
+
+    setWhatsappError("");
+
+    // Usuário não está logado
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+
+      setWhatsappLoading(true);
+
+      const response =
+        await api.get(
+          `/professores/${id}/whatsapp/`
+        );
+
+      const telefone =
+        response.data.telefone;
+
+      if (!telefone) {
+        setWhatsappError(
+          "Este professor não possui WhatsApp cadastrado."
+        );
+        return;
+      }
+
+      // Abre a conversa no WhatsApp
+      const whatsappUrl =
+        `https://wa.me/${telefone}`;
+
+      window.open(
+        whatsappUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Erro ao acessar WhatsApp:",
+        err
+      );
+
+      if (err.response?.status === 404) {
+        setWhatsappError(
+          "Este professor não possui WhatsApp cadastrado."
+        );
+      } else {
+        setWhatsappError(
+          "Não foi possível acessar o WhatsApp. Tente novamente."
+        );
+      }
+
+    } finally {
+
+      setWhatsappLoading(false);
+
+    }
   }
 
   // =========================================================
@@ -192,11 +267,23 @@ export default function ProfessorProfile() {
             <Button
               variant="secondary"
               size="lg"
+              onClick={handleWhatsApp}
+              disabled={whatsappLoading}
             >
-              WhatsApp
+              {whatsappLoading
+                ? "Abrindo..."
+                : "WhatsApp"}
             </Button>
 
           </div>
+
+          {/* ERRO WHATSAPP */}
+
+          {whatsappError && (
+            <p className="mt-3 text-sm text-red-400">
+              {whatsappError}
+            </p>
+          )}
 
           {/* ESTATÍSTICAS */}
 
